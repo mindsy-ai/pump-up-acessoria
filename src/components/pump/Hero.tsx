@@ -107,7 +107,7 @@ export function Hero({ onStart }: { onStart: () => void }) {
         </motion.div>
       </section>
 
-      <StoriesModal open={openStories} onClose={() => setOpenStories(false)} onApply={onStart} />
+      <StoriesPlayer isOpen={openStories} onClose={() => setOpenStories(false)} />
     </>
   );
 }
