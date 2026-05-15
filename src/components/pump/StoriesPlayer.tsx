@@ -5,10 +5,11 @@ interface StoriesPlayerProps {
   onClose: () => void;
 }
 
-const STORY_DURATION_MS = 8000;
+const YOUTUBE_ID = "iy6QfhZWccA";
+const STORY_DURATION_MS = 60000;
 
 export function StoriesPlayer({ isOpen, onClose }: StoriesPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const startRef = useRef<number>(0);
@@ -57,18 +58,25 @@ export function StoriesPlayer({ isOpen, onClose }: StoriesPlayerProps) {
     };
   }, [isOpen, paused, onClose]);
 
+  const postToPlayer = (func: "pauseVideo" | "playVideo") => {
+    iframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: "command", func, args: [] }),
+      "*"
+    );
+  };
+
   const handlePauseStart = () => {
     if (paused) return;
     elapsedRef.current += performance.now() - startRef.current;
     setPaused(true);
-    videoRef.current?.pause();
+    postToPlayer("pauseVideo");
   };
 
   const handlePauseEnd = () => {
     if (!paused) return;
     startRef.current = performance.now();
     setPaused(false);
-    videoRef.current?.play().catch(() => {});
+    postToPlayer("playVideo");
   };
 
   if (!isOpen) return null;
@@ -96,29 +104,30 @@ export function StoriesPlayer({ isOpen, onClose }: StoriesPlayerProps) {
         <button
           onClick={onClose}
           aria-label="Fechar stories"
-          className="absolute right-3 top-5 z-20 flex h-9 w-9 items-center justify-center rounded-full text-2xl text-white hover:bg-white/10"
+          className="absolute right-3 top-5 z-30 flex h-9 w-9 items-center justify-center rounded-full text-2xl text-white hover:bg-white/10"
         >
           ×
         </button>
 
-        {/* Tap-and-hold area */}
+        {/* YouTube embed */}
+        <iframe
+          ref={iframeRef}
+          title="Pump Up Stories"
+          src={`https://www.youtube.com/embed/${YOUTUBE_ID}?autoplay=1&controls=0&modestbranding=1&playsinline=1&rel=0&enablejsapi=1`}
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 h-full w-full"
+          frameBorder={0}
+        />
+
+        {/* Tap-and-hold area (above iframe so it captures gestures) */}
         <div
-          className="absolute inset-0 z-10"
+          className="absolute inset-0 z-20"
           onMouseDown={handlePauseStart}
           onMouseUp={handlePauseEnd}
           onMouseLeave={handlePauseEnd}
           onTouchStart={handlePauseStart}
           onTouchEnd={handlePauseEnd}
-        />
-
-        {/* Video — Add your video URL here */}
-        <video
-          ref={videoRef}
-          src=""
-          autoPlay
-          muted
-          playsInline
-          className="h-full w-full object-cover"
         />
       </div>
     </div>
