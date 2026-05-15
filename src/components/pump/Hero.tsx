@@ -1,96 +1,173 @@
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
+import pumpLogo from "@/assets/pump-logo.png";
 
 const ANALYZED = [
   "Estrutura do tráfego pago",
   "Qualidade dos leads",
   "Processo comercial",
-  "Tempo de resposta",
-  "CRM e funil",
-  "Follow-up",
+  "Tempo de resposta dos corretores",
+  "CRM e organização do funil",
+  "Estratégia de follow-up",
   "Posicionamento digital",
-  "Conversão",
-  "Perdas ocultas",
+  "Conversão de atendimentos em vendas",
+  "Perdas ocultas no processo comercial",
 ];
 
-const DELIVERABLES = [
-  "Diagnóstico estratégico",
-  "Identificação de gargalos",
-  "Plano de melhorias",
-  "Oportunidades de crescimento",
-  "Direcionamentos claros",
-];
+function StoriesModal({ open, onClose, onApply }: { open: boolean; onClose: () => void; onApply: () => void }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-gradient-to-b from-[#3D0080] to-[#1A0040] p-6 text-center"
+          >
+            <button
+              onClick={onClose}
+              className="absolute right-3 top-3 rounded-full p-1.5 text-white/70 hover:bg-white/10 hover:text-white"
+              aria-label="Fechar"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="mx-auto mb-4 h-[120px] w-[120px] animate-ring-pulse rounded-full p-[4px]"
+              style={{ background: "conic-gradient(from 0deg, #FF4500, #CC0080, #6B1BFF, #FF4500)" }}>
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-black">
+                <img src={pumpLogo} alt="Pump Up" className="h-[65%] w-[65%] object-contain" />
+              </div>
+            </div>
+
+            <h3 className="mb-2 text-xl font-black uppercase text-white">Auditoria Pump</h3>
+            <p className="mb-5 text-sm text-white/80">
+              Aplicação 100% gratuita para apenas 3 imobiliárias selecionadas nesta edição.
+            </p>
+
+            <button
+              onClick={() => {
+                onClose();
+                onApply();
+              }}
+              className="w-full rounded-full bg-[#FF4500] px-6 py-4 text-[15px] font-bold uppercase tracking-[0.5px] text-white shadow-[0_6px_24px_rgba(255,69,0,0.5)] transition active:scale-[0.98] hover:bg-[#E03D00]"
+            >
+              Quero me candidatar →
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 export function Hero({ onStart }: { onStart: () => void }) {
+  const [openStories, setOpenStories] = useState(false);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="mx-auto max-w-4xl px-4 py-12 sm:py-20"
-    >
-      <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#6B1BFF]/40 bg-[#6B1BFF]/10 px-4 py-1.5">
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-pump-gradient">
-          Pump Up Marketing
-        </span>
+    <>
+      {/* Fixed top bar */}
+      <div
+        className="fixed left-0 right-0 top-0 z-[100] flex h-9 items-center justify-center bg-[#0D0D0D] text-[13px] font-bold text-white"
+      >
+        <span className="mr-1.5 text-[#FF4500]">●</span>
+        Restam apenas&nbsp;<span className="text-[#FF4500]">3 vagas</span>&nbsp;nesta edição gratuita
       </div>
 
-      <h1 className="font-display text-4xl font-black uppercase leading-[0.95] tracking-tight text-white sm:text-6xl md:text-7xl">
-        Auditoria <span className="text-pump-gradient">Pump</span>
-        <br />
-        para Imobiliárias
-      </h1>
-
-      <p className="mt-6 max-w-2xl text-lg leading-relaxed text-[#CCCCCC]">
-        Uma análise estratégica completa do marketing e do comercial da sua imobiliária —{" "}
-        <span className="font-semibold text-white">100% gratuita para apenas 3 empresas selecionadas.</span>
-      </p>
-
-      <div className="mt-10 grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-[#1A1A1A] p-6">
-          <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-pump-gradient">
-            O que será analisado
-          </h3>
-          <ul className="space-y-2.5">
-            {ANALYZED.map((item) => (
-              <li key={item} className="flex items-start gap-2.5 text-sm text-[#CCCCCC]">
-                <span className="mt-0.5 text-[#FF4500]">✅</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="rounded-2xl border border-[#6B1BFF]/30 bg-gradient-to-br from-[#6B1BFF]/10 to-[#FF4500]/5 p-6">
-          <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-pump-gradient">
-            Ao final sua imobiliária receberá
-          </h3>
-          <ul className="space-y-2.5">
-            {DELIVERABLES.map((item) => (
-              <li key={item} className="flex items-start gap-2.5 text-sm text-white">
-                <span className="mt-0.5 text-[#6B1BFF]">✔</span>
-                <span className="font-medium">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="mt-8 rounded-xl border border-[#FF4500]/40 bg-[#FF4500]/10 p-4 text-sm font-semibold text-white">
-        ⚠️ Depois desta semana, a Auditoria Pump deixará de ser gratuita e passará a ser um serviço pago.
-      </div>
-
-      <div className="mt-10 flex flex-col items-center gap-3">
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={onStart}
-          className="group inline-flex items-center gap-2 rounded-xl bg-pump-gradient px-8 py-4 text-base font-bold uppercase tracking-wide text-white shadow-[0_10px_40px_-10px_rgba(107,27,255,0.6)] transition-all hover:shadow-[0_15px_50px_-10px_rgba(255,69,0,0.7)]"
+      <section
+        className="min-h-screen w-full pt-9"
+        style={{ background: "linear-gradient(180deg, #3D0080 0%, #1A0040 100%)" }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto flex max-w-xl flex-col items-center px-5 pb-16 pt-8 text-center"
         >
-          Quero me candidatar
-          <span className="transition-transform group-hover:translate-x-1">→</span>
-        </motion.button>
-        <p className="text-xs text-[#CCCCCC]">⏳ Tempo médio de preenchimento: 10 minutos</p>
-      </div>
-    </motion.div>
+          {/* 1. Stories ring */}
+          <button
+            onClick={() => setOpenStories(true)}
+            aria-label="Ver stories da Pump Up"
+            className="h-[140px] w-[140px] animate-ring-pulse rounded-full p-[4px] transition active:scale-95"
+            style={{ background: "conic-gradient(from 0deg, #FF4500, #CC0080, #6B1BFF, #FF4500)" }}
+          >
+            <div className="flex h-full w-full items-center justify-center rounded-full bg-black">
+              <img src={pumpLogo} alt="Pump Up Marketing" className="h-[65%] w-[65%] object-contain" />
+            </div>
+          </button>
+
+          {/* 2. Creator credit */}
+          <p className="mt-2.5 text-[13px] text-white/70">
+            Criado por <span className="text-[#9B6FFF]">@pumpup_mkt</span>
+          </p>
+
+          {/* 3. Title */}
+          <h1
+            className="mt-4 font-display font-black uppercase leading-[1.1] text-white"
+            style={{ fontSize: "clamp(36px, 7vw, 64px)", fontWeight: 900 }}
+          >
+            Auditoria{" "}
+            <span
+              style={{
+                backgroundImage: "linear-gradient(90deg, #FF4500 0%, #6B1BFF 100%)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+              }}
+            >
+              Pump
+            </span>
+            <br />
+            Para Imobiliárias
+          </h1>
+
+          {/* 4. CTA */}
+          <button
+            onClick={onStart}
+            className="mt-5 w-full rounded-full bg-[#FF4500] px-6 py-5 text-[17px] font-bold uppercase tracking-[0.5px] text-white shadow-[0_6px_24px_rgba(255,69,0,0.5)] transition active:scale-[0.98] hover:bg-[#E03D00]"
+          >
+            Quero me candidatar →
+          </button>
+
+          {/* 5. Description */}
+          <p className="mt-5 text-[17px] leading-[1.6] text-white">
+            Uma análise estratégica completa do marketing e do comercial da sua imobiliária —{" "}
+            <span className="font-bold">100% gratuita para apenas 3 empresas selecionadas.</span>
+          </p>
+
+          {/* 6. Card */}
+          <div className="mt-6 w-full rounded-2xl bg-black/30 p-5 text-left">
+            <h3 className="mb-3 text-[13px] font-bold uppercase tracking-[1.5px] text-[#9B6FFF]">
+              O que será analisado
+            </h3>
+            <ul className="space-y-2.5">
+              {ANALYZED.map((item) => (
+                <li key={item} className="flex items-start gap-2.5 text-[15px] text-white">
+                  <span className="leading-none">✅</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </motion.div>
+      </section>
+
+      <StoriesModal open={openStories} onClose={() => setOpenStories(false)} onApply={onStart} />
+    </>
   );
 }

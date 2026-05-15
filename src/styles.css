@@ -118,4 +118,10 @@
     50% { opacity: 0.4; }
   }
   .animate-pulse-dot { animation: pulse-dot 1.5s ease-in-out infinite; }
+
+  @keyframes ring-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+  .animate-ring-pulse { animation: ring-pulse 2.5s ease-in-out infinite; }
 }
