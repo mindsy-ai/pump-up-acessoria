@@ -15,66 +15,6 @@ const ANALYZED = [
   "Perdas ocultas no processo comercial",
 ];
 
-function StoriesModal({ open, onClose, onApply }: { open: boolean; onClose: () => void; onApply: () => void }) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-gradient-to-b from-[#3D0080] to-[#1A0040] p-6 text-center"
-          >
-            <button
-              onClick={onClose}
-              className="absolute right-3 top-3 rounded-full p-1.5 text-white/70 hover:bg-white/10 hover:text-white"
-              aria-label="Fechar"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="mx-auto mb-4 h-[120px] w-[120px] animate-ring-pulse rounded-full p-[4px]"
-              style={{ background: "conic-gradient(from 0deg, #FF4500, #CC0080, #6B1BFF, #FF4500)" }}>
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-black">
-                <img src={pumpLogo} alt="Pump Up" className="h-[65%] w-[65%] object-contain" />
-              </div>
-            </div>
-
-            <h3 className="mb-2 text-xl font-black uppercase text-white">Auditoria Pump</h3>
-            <p className="mb-5 text-sm text-white/80">
-              Aplicação 100% gratuita para apenas 3 imobiliárias selecionadas nesta edição.
-            </p>
-
-            <button
-              onClick={() => {
-                onClose();
-                onApply();
-              }}
-              className="w-full rounded-full bg-[#FF4500] px-6 py-4 text-[15px] font-bold uppercase tracking-[0.5px] text-white shadow-[0_6px_24px_rgba(255,69,0,0.5)] transition active:scale-[0.98] hover:bg-[#E03D00]"
-            >
-              Quero me candidatar →
-            </button>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
 
 export function Hero({ onStart }: { onStart: () => void }) {
   const [openStories, setOpenStories] = useState(false);
