@@ -5,7 +5,8 @@ interface StoriesPlayerProps {
   onClose: () => void;
 }
 
-const STORY_DURATION_MS = 8000;
+const YOUTUBE_ID = "iy6QfhZWccA";
+const STORY_DURATION_MS = 60000;
 
 export function StoriesPlayer({ isOpen, onClose }: StoriesPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
