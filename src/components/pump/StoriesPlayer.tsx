@@ -9,7 +9,7 @@ const YOUTUBE_ID = "iy6QfhZWccA";
 const STORY_DURATION_MS = 60000;
 
 export function StoriesPlayer({ isOpen, onClose }: StoriesPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const startRef = useRef<number>(0);
