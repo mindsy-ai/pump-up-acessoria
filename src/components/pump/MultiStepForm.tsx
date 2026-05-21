@@ -120,29 +120,6 @@ export function MultiStepForm({ onExit: _onExit }: { onExit?: () => void }) {
     setStep((s) => s + 1);
   };
 
-  const next = () => {
-    if (!validate()) return;
-    if (step === 5) {
-      setLoading(true);
-      (async () => {
-        try {
-          await fetch("https://mindsy-n8n.nzsrfq.easypanel.host/webhook/recebe_dados_formulario", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...data, submitted_at: new Date().toISOString() }),
-          });
-        } catch (err) {
-          console.error("Webhook error:", err);
-        } finally {
-          setLoading(false);
-          setSubmitted(true);
-        }
-      })();
-      return;
-    }
-    setDirection(1);
-    setStep((s) => s + 1);
-  };
 
   const back = () => {
     setDirection(-1);
