@@ -14,7 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      form_leads: {
+        Row: {
+          created_at: string
+          form_data: Json
+          id: string
+          is_completed: boolean
+          last_step_completed: number
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          form_data?: Json
+          id?: string
+          is_completed?: boolean
+          last_step_completed?: number
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          form_data?: Json
+          id?: string
+          is_completed?: boolean
+          last_step_completed?: number
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
