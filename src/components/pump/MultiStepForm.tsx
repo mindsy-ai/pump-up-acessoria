@@ -62,6 +62,8 @@ export function MultiStepForm({ onExit: _onExit }: { onExit?: () => void }) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const sessionIdRef = useRef<string>(genSessionId());
+
   const set = (k: string, v: any) => {
     setData((d) => ({ ...d, [k]: v }));
     setErrors((e) => {
@@ -90,6 +92,32 @@ export function MultiStepForm({ onExit: _onExit }: { onExit?: () => void }) {
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
+  };
+
+  const next = () => {
+    if (!validate()) return;
+    if (step === 5) {
+      setLoading(true);
+      (async () => {
+        try {
+          await fetch("https://mindsy-n8n.nzsrfq.easypanel.host/webhook/recebe_dados_formulario", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...data, submitted_at: new Date().toISOString() }),
+          });
+        } catch (err) {
+          console.error("Webhook error:", err);
+        } finally {
+          void trackLead(sessionIdRef.current, data, 5, true);
+          setLoading(false);
+          setSubmitted(true);
+        }
+      })();
+      return;
+    }
+    void trackLead(sessionIdRef.current, data, step, false);
+    setDirection(1);
+    setStep((s) => s + 1);
   };
 
   const next = () => {
