@@ -1,10 +1,34 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProgressHeader } from "./ProgressHeader";
 import { Field, RadioGroup, CheckboxGroup } from "./FormField";
 import { Success } from "./Success";
+import { supabase } from "@/integrations/supabase/client";
 
 type FormData = Record<string, any>;
+
+function genSessionId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `s_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function trackLead(sessionId: string, formData: FormData, lastStep: number, isCompleted: boolean) {
+  try {
+    await supabase.from("form_leads").upsert(
+      {
+        session_id: sessionId,
+        form_data: formData,
+        last_step_completed: lastStep,
+        is_completed: isCompleted,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "session_id" },
+    );
+  } catch (err) {
+    // fire-and-forget — never disrupt the user
+    console.warn("[trackLead] failed", err);
+  }
+}
 
 const MOTIVATIONAL: Record<number, string> = {
   1: "Vamos começar! 🚀",
