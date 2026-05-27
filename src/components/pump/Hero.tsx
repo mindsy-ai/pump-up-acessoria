@@ -8,6 +8,7 @@ const QUALIFIERS = [
   "Sua empresa vende serviços B2B e precisa de mais clientes previsíveis",
   "Você já tem um produto validado mas o processo comercial ainda é frágil",
   "Quer escalar sem depender só de indicação ou esforço manual",
+  "Você possui um time comercial",
 ];
 
 const DELIVERABLES: { title: string; items: string[] }[] = [
@@ -36,8 +37,8 @@ const DELIVERABLES: { title: string; items: string[] }[] = [
 
 const FAQ: { q: string; a: string }[] = [
   {
-    q: "É realmente gratuito?",
-    a: "Sim. Selecionamos 3 empresas por edição e entregamos a assessoria completa sem custo. A seleção garante que trabalhamos apenas com empresas no perfil certo.",
+    q: "O diagnóstico é totalmente gratuito?",
+    a: "Sim. O diagnóstico estratégico é 100% gratuito e sem compromisso. Selecionamos 5 empresas por edição e analisamos seu processo de aquisição e vendas sem nenhum custo. A implementação das estratégias identificadas é um serviço separado, apresentado apenas para quem tiver interesse após o diagnóstico.",
   },
   {
     q: "Quanto tempo dura a assessoria?",
@@ -98,10 +99,10 @@ export function Hero({ onStart }: { onStart: () => void }) {
 
           {/* Headline */}
           <h1
-            className="mt-4 font-display font-black leading-[1.1] text-white"
-            style={{ fontSize: "clamp(32px, 6vw, 56px)", fontWeight: 900 }}
+            className="mt-4 font-display font-black uppercase leading-[1.1] tracking-[1px] text-white"
+            style={{ fontSize: "clamp(26px, 5vw, 46px)", fontWeight: 900 }}
           >
-            Onde sua empresa está{" "}
+            Aplicação{" "}
             <span
               style={{
                 backgroundImage: "linear-gradient(90deg, #FF4500 0%, #6B1BFF 100%)",
@@ -110,9 +111,9 @@ export function Hero({ onStart }: { onStart: () => void }) {
                 color: "transparent",
               }}
             >
-              perdendo clientes
+              Diagnóstico
             </span>{" "}
-            e dinheiro no digital?
+            Estratégico Gratuito
           </h1>
 
           {/* Subtitle */}
@@ -176,7 +177,7 @@ export function Hero({ onStart }: { onStart: () => void }) {
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <p className="text-[15px] italic leading-[1.55] text-white">
-                  "Em 60 dias, estruturamos o processo de prospecção do zero e triplicamos o volume de reuniões qualificadas por semana."
+                  "Em 90 dias, estruturamos o processo de prospecção do zero e triplicamos o volume de reuniões qualificadas por semana."
                 </p>
                 <p className="mt-3 text-[13px] text-white/70">
                   — Diretor comercial, empresa de serviços de TI B2B
@@ -185,7 +186,7 @@ export function Hero({ onStart }: { onStart: () => void }) {
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { n: "+3x", l: "reuniões qualificadas" },
-                  { n: "60", l: "dias de implantação" },
+                  { n: "90", l: "dias de implantação" },
                   { n: "CRM", l: "+ time treinado" },
                 ].map((s) => (
                   <div key={s.l} className="rounded-xl bg-[#1A1A1A] p-3 text-center">
