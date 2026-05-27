@@ -21,7 +21,7 @@ function Index() {
       <main className="min-h-screen text-white">
         <Hero onStart={() => setStarted(true)} />
         <footer className="bg-[#1A0040] py-6 text-center text-xs text-white/50">
-          © {new Date().getFullYear()} Pump Up Marketing — Auditoria Pump
+          © 2026 Pump Up Marketing — Assessoria Pump
         </footer>
       </main>
     );
@@ -38,7 +38,7 @@ function Index() {
         <div className="mx-auto flex max-w-5xl items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold sm:text-sm">
           <span className="h-2 w-2 animate-pulse-dot rounded-full bg-[#FF4500]" />
           <span className="text-white">
-            Restam apenas <span className="text-pump-gradient">3 vagas</span> nesta edição gratuita
+            Restam apenas <span className="text-pump-gradient">3 vagas</span> — seleção encerra sexta-feira
           </span>
         </div>
       </div>
@@ -48,7 +48,7 @@ function Index() {
       </div>
 
       <footer className="relative mt-12 border-t border-white/5 py-6 text-center text-xs text-[#666]">
-        © {new Date().getFullYear()} Pump Up Marketing — Auditoria Pump
+        © 2026 Pump Up Marketing — Assessoria Pump
       </footer>
     </main>
   );

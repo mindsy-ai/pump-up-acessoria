@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-const STEP_LABELS = ["Imobiliária", "Operação", "Comercial", "Marketing", "Objetivos"];
+const STEP_LABELS = ["Empresa", "Negócio", "Diagnóstico", "Confirmação"];
 
 export function ProgressHeader({ step, total }: { step: number; total: number }) {
   const pct = Math.round((step / total) * 100);
