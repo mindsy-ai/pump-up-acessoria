@@ -15,6 +15,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
 
 export const Route = createFileRoute("/admin/leads")({
   component: AdminLeadsPage,
@@ -31,6 +43,9 @@ type Lead = {
 };
 
 type Filter = "all" | "completed" | "incomplete";
+type Tab = "dashboard" | "leads";
+
+const COLORS = ["#FF4500", "#6B1BFF", "#CC0080", "#FF8C00", "#00C49F", "#FFBB28"];
 
 function formatDate(iso: string) {
   try {
@@ -67,6 +82,185 @@ function toCsv(rows: Lead[]) {
   return lines.join("\n");
 }
 
+function countByField(leads: Lead[], field: string): { name: string; total: number }[] {
+  const map: Record<string, number> = {};
+  for (const l of leads) {
+    const v = l.form_data?.[field];
+    if (v) map[v] = (map[v] ?? 0) + 1;
+  }
+  return Object.entries(map)
+    .map(([name, total]) => ({ name, total }))
+    .sort((a, b) => b.total - a.total);
+}
+
+function countByDay(leads: Lead[]): { day: string; total: number }[] {
+  const map: Record<string, number> = {};
+  for (const l of leads) {
+    const day = new Date(l.created_at).toLocaleDateString("pt-BR");
+    map[day] = (map[day] ?? 0) + 1;
+  }
+  return Object.entries(map)
+    .map(([day, total]) => ({ day, total }))
+    .sort((a, b) => {
+      const [da, ma, ya] = a.day.split("/").map(Number);
+      const [db, mb, yb] = b.day.split("/").map(Number);
+      return new Date(ya, ma - 1, da).getTime() - new Date(yb, mb - 1, db).getTime();
+    });
+}
+
+function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-[#141414] p-5">
+      <p className="text-xs font-semibold uppercase tracking-wider text-white/50">{label}</p>
+      <p className="mt-2 text-3xl font-black text-white">{value}</p>
+      {sub && <p className="mt-1 text-xs text-white/40">{sub}</p>}
+    </div>
+  );
+}
+
+function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-[#141414] p-5">
+      <p className="mb-4 text-sm font-semibold text-white/80">{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function Dashboard({ leads }: { leads: Lead[] }) {
+  const total = leads.length;
+  const completed = leads.filter((l) => l.is_completed).length;
+  const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  const funnelData = [
+    { name: "Parou na etapa 1", total: leads.filter((l) => l.last_step_completed === 1 && !l.is_completed).length },
+    { name: "Parou na etapa 2", total: leads.filter((l) => l.last_step_completed === 2 && !l.is_completed).length },
+    { name: "Parou na etapa 3", total: leads.filter((l) => l.last_step_completed === 3 && !l.is_completed).length },
+    { name: "Concluíram", total: completed },
+  ];
+
+  const byDay = countByDay(leads);
+  const faturamento = countByField(leads, "faturamento");
+  const vendedores = countByField(leads, "qtd_vendedores");
+  const crm = countByField(leads, "usa_crm");
+  const geracaoClientes = countByField(leads, "geracao_clientes");
+
+  return (
+    <div className="space-y-6">
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Total de candidaturas" value={total} />
+        <StatCard label="Concluídas" value={completed} sub={`${rate}% de conclusão`} />
+        <StatCard label="Incompletas" value={total - completed} sub="abandonaram o formulário" />
+        <StatCard label="Taxa de conclusão" value={`${rate}%`} />
+      </div>
+
+      {/* Candidaturas por dia */}
+      <ChartCard title="Candidaturas por dia">
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={byDay}>
+            <XAxis dataKey="day" tick={{ fill: "#ffffff60", fontSize: 11 }} />
+            <YAxis tick={{ fill: "#ffffff60", fontSize: 11 }} allowDecimals={false} />
+            <Tooltip
+              contentStyle={{ background: "#1A1A1A", border: "1px solid #ffffff20", borderRadius: 8 }}
+              labelStyle={{ color: "#fff" }}
+              itemStyle={{ color: "#FF4500" }}
+            />
+            <Bar dataKey="total" fill="#FF4500" radius={[4, 4, 0, 0]} name="Candidaturas" />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* Funil de etapas */}
+      <ChartCard title="Funil de etapas — onde as pessoas param">
+        <ResponsiveContainer width="100%" height={180}>
+          <BarChart data={funnelData} layout="vertical">
+            <XAxis type="number" tick={{ fill: "#ffffff60", fontSize: 11 }} allowDecimals={false} />
+            <YAxis type="category" dataKey="name" tick={{ fill: "#ffffff80", fontSize: 12 }} width={90} />
+            <Tooltip
+              contentStyle={{ background: "#1A1A1A", border: "1px solid #ffffff20", borderRadius: 8 }}
+              labelStyle={{ color: "#fff" }}
+              itemStyle={{ color: "#6B1BFF" }}
+            />
+            <Bar dataKey="total" fill="#6B1BFF" radius={[0, 4, 4, 0]} name="Pessoas" />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Faturamento */}
+        <ChartCard title="Faturamento mensal">
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={faturamento}>
+              <XAxis dataKey="name" tick={{ fill: "#ffffff60", fontSize: 10 }} />
+              <YAxis tick={{ fill: "#ffffff60", fontSize: 11 }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ background: "#1A1A1A", border: "1px solid #ffffff20", borderRadius: 8 }}
+                labelStyle={{ color: "#fff" }}
+                itemStyle={{ color: "#FF4500" }}
+              />
+              <Bar dataKey="total" fill="#FF4500" radius={[4, 4, 0, 0]} name="Empresas" />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        {/* Qtd vendedores */}
+        <ChartCard title="Tamanho do time de vendas">
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={vendedores}>
+              <XAxis dataKey="name" tick={{ fill: "#ffffff60", fontSize: 12 }} />
+              <YAxis tick={{ fill: "#ffffff60", fontSize: 11 }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ background: "#1A1A1A", border: "1px solid #ffffff20", borderRadius: 8 }}
+                labelStyle={{ color: "#fff" }}
+                itemStyle={{ color: "#CC0080" }}
+              />
+              <Bar dataKey="total" fill="#CC0080" radius={[4, 4, 0, 0]} name="Empresas" />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        {/* Usa CRM */}
+        <ChartCard title="Usa CRM?">
+          {crm.length === 0 ? (
+            <p className="py-10 text-center text-sm text-white/40">Sem dados ainda</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={crm} dataKey="total" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`}>
+                  {crm.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ background: "#1A1A1A", border: "1px solid #ffffff20", borderRadius: 8 }}
+                  labelStyle={{ color: "#fff" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        {/* Como gera clientes */}
+        <ChartCard title="Como gera clientes hoje?">
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={geracaoClientes}>
+              <XAxis dataKey="name" tick={{ fill: "#ffffff60", fontSize: 10 }} />
+              <YAxis tick={{ fill: "#ffffff60", fontSize: 11 }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ background: "#1A1A1A", border: "1px solid #ffffff20", borderRadius: 8 }}
+                labelStyle={{ color: "#fff" }}
+                itemStyle={{ color: "#00C49F" }}
+              />
+              <Bar dataKey="total" fill="#00C49F" radius={[4, 4, 0, 0]} name="Empresas" />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </div>
+    </div>
+  );
+}
+
 function AdminLeadsPage() {
   const navigate = useNavigate();
   const [authChecked, setAuthChecked] = useState(false);
@@ -74,6 +268,7 @@ function AdminLeadsPage() {
   const [filter, setFilter] = useState<Filter>("all");
   const [detail, setDetail] = useState<Lead | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>("dashboard");
 
   useEffect(() => {
     let active = true;
@@ -140,18 +335,20 @@ function AdminLeadsPage() {
       <div className="mx-auto max-w-7xl">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Leads do formulário</h1>
+            <h1 className="text-2xl font-bold">Pump Up — Painel de Candidaturas</h1>
             <p className="mt-1 text-sm text-white/60">
-              {counts.total} leads totais — {counts.completed} completos — {counts.incomplete} incompletos
+              {counts.total} totais — {counts.completed} completos — {counts.incomplete} incompletos
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={exportCsv}
-              className="rounded-lg border border-white/15 bg-[#1A1A1A] px-4 py-2 text-sm font-semibold hover:border-white/40"
-            >
-              Exportar CSV
-            </button>
+            {tab === "leads" && (
+              <button
+                onClick={exportCsv}
+                className="rounded-lg border border-white/15 bg-[#1A1A1A] px-4 py-2 text-sm font-semibold hover:border-white/40"
+              >
+                Exportar CSV
+              </button>
+            )}
             <button
               onClick={logout}
               className="rounded-lg border border-white/15 bg-[#1A1A1A] px-4 py-2 text-sm font-semibold hover:border-white/40"
@@ -161,75 +358,99 @@ function AdminLeadsPage() {
           </div>
         </header>
 
+        {/* Tab switcher */}
         <div className="mt-6 inline-flex rounded-lg border border-white/10 bg-[#141414] p-1 text-sm">
-          {(["all", "completed", "incomplete"] as Filter[]).map((f) => (
+          {(["dashboard", "leads"] as Tab[]).map((t) => (
             <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`rounded-md px-3 py-1.5 font-medium transition ${
-                filter === f ? "bg-[#FF4500] text-white" : "text-white/70 hover:text-white"
+              key={t}
+              onClick={() => setTab(t)}
+              className={`rounded-md px-4 py-1.5 font-medium transition ${
+                tab === t ? "bg-[#FF4500] text-white" : "text-white/70 hover:text-white"
               }`}
             >
-              {f === "all" ? "Todos" : f === "completed" ? "Completos" : "Incompletos"}
+              {t === "dashboard" ? "Dashboard" : "Leads"}
             </button>
           ))}
         </div>
 
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
-        <div className="mt-6 overflow-hidden rounded-xl border border-white/10 bg-[#141414]">
-          {leads === null ? (
-            <div className="p-8 text-center text-white/60">Carregando...</div>
-          ) : filtered.length === 0 ? (
-            <div className="p-8 text-center text-white/60">Nenhum lead encontrado.</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-white/70">Início</TableHead>
-                  <TableHead className="text-white/70">Atualizado</TableHead>
-                  <TableHead className="text-white/70">Status</TableHead>
-                  <TableHead className="text-white/70">Nome</TableHead>
-                  <TableHead className="text-white/70">Empresa</TableHead>
-                  <TableHead className="text-white/70">WhatsApp</TableHead>
-                  <TableHead className="text-white/70">E-mail</TableHead>
-                  <TableHead className="text-white/70 text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((l) => (
-                  <TableRow key={l.id} className="border-white/5 hover:bg-white/5">
-                    <TableCell className="text-xs">{formatDate(l.created_at)}</TableCell>
-                    <TableCell className="text-xs">{formatDate(l.updated_at)}</TableCell>
-                    <TableCell>
-                      {l.is_completed ? (
-                        <span className="inline-flex rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400">
-                          Completo
-                        </span>
-                      ) : (
-                        <span className="inline-flex rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-400">
-                          Etapa {l.last_step_completed}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm">{l.form_data?.nome ?? "—"}</TableCell>
-                    <TableCell className="text-sm">{l.form_data?.empresa ?? "—"}</TableCell>
-                    <TableCell className="text-sm">{l.form_data?.whatsapp ?? "—"}</TableCell>
-                    <TableCell className="text-sm">{l.form_data?.email ?? "—"}</TableCell>
-                    <TableCell className="text-right">
-                      <button
-                        onClick={() => setDetail(l)}
-                        className="rounded-md border border-white/15 bg-[#1A1A1A] px-3 py-1 text-xs font-semibold hover:border-[#FF4500]"
-                      >
-                        Ver detalhes
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </div>
+        {leads === null ? (
+          <div className="mt-10 text-center text-white/60">Carregando...</div>
+        ) : tab === "dashboard" ? (
+          <div className="mt-6">
+            <Dashboard leads={leads} />
+          </div>
+        ) : (
+          <>
+            {/* Filter tabs */}
+            <div className="mt-4 inline-flex rounded-lg border border-white/10 bg-[#141414] p-1 text-sm">
+              {(["all", "completed", "incomplete"] as Filter[]).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`rounded-md px-3 py-1.5 font-medium transition ${
+                    filter === f ? "bg-white/10 text-white" : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  {f === "all" ? "Todos" : f === "completed" ? "Completos" : "Incompletos"}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-[#141414]">
+              {filtered.length === 0 ? (
+                <div className="p-8 text-center text-white/60">Nenhum lead encontrado.</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-white/70">Início</TableHead>
+                      <TableHead className="text-white/70">Atualizado</TableHead>
+                      <TableHead className="text-white/70">Status</TableHead>
+                      <TableHead className="text-white/70">Nome</TableHead>
+                      <TableHead className="text-white/70">Empresa</TableHead>
+                      <TableHead className="text-white/70">WhatsApp</TableHead>
+                      <TableHead className="text-white/70">E-mail</TableHead>
+                      <TableHead className="text-white/70 text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((l) => (
+                      <TableRow key={l.id} className="border-white/5 hover:bg-white/5">
+                        <TableCell className="text-xs">{formatDate(l.created_at)}</TableCell>
+                        <TableCell className="text-xs">{formatDate(l.updated_at)}</TableCell>
+                        <TableCell>
+                          {l.is_completed ? (
+                            <span className="inline-flex rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400">
+                              Completo
+                            </span>
+                          ) : (
+                            <span className="inline-flex rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-400">
+                              Etapa {l.last_step_completed}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">{l.form_data?.nome ?? "—"}</TableCell>
+                        <TableCell className="text-sm">{l.form_data?.empresa ?? "—"}</TableCell>
+                        <TableCell className="text-sm">{l.form_data?.whatsapp ?? "—"}</TableCell>
+                        <TableCell className="text-sm">{l.form_data?.email ?? "—"}</TableCell>
+                        <TableCell className="text-right">
+                          <button
+                            onClick={() => setDetail(l)}
+                            className="rounded-md border border-white/15 bg-[#1A1A1A] px-3 py-1 text-xs font-semibold hover:border-[#FF4500]"
+                          >
+                            Ver detalhes
+                          </button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
