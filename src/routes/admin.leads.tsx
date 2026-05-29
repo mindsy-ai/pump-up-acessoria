@@ -190,7 +190,7 @@ function AdminLeadsPage() {
                   <TableHead className="text-white/70">Atualizado</TableHead>
                   <TableHead className="text-white/70">Status</TableHead>
                   <TableHead className="text-white/70">Nome</TableHead>
-                  <TableHead className="text-white/70">Imobiliária</TableHead>
+                  <TableHead className="text-white/70">Empresa</TableHead>
                   <TableHead className="text-white/70">WhatsApp</TableHead>
                   <TableHead className="text-white/70">E-mail</TableHead>
                   <TableHead className="text-white/70 text-right">Ações</TableHead>
@@ -212,8 +212,8 @@ function AdminLeadsPage() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-sm">{l.form_data?.responsavel ?? "—"}</TableCell>
-                    <TableCell className="text-sm">{l.form_data?.nome_imob ?? "—"}</TableCell>
+                    <TableCell className="text-sm">{l.form_data?.nome ?? "—"}</TableCell>
+                    <TableCell className="text-sm">{l.form_data?.empresa ?? "—"}</TableCell>
                     <TableCell className="text-sm">{l.form_data?.whatsapp ?? "—"}</TableCell>
                     <TableCell className="text-sm">{l.form_data?.email ?? "—"}</TableCell>
                     <TableCell className="text-right">

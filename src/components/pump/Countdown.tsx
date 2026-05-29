@@ -22,11 +22,17 @@ function diff(target: Date) {
 }
 
 export function Countdown({ className = "" }: { className?: string }) {
-  const [target] = useState(nextFridayEnd);
+  const [target, setTarget] = useState(nextFridayEnd);
   const [t, setT] = useState(() => diff(target));
 
   useEffect(() => {
-    const id = setInterval(() => setT(diff(target)), 1000);
+    const id = setInterval(() => {
+      const remaining = diff(target);
+      setT(remaining);
+      if (remaining.days === 0 && remaining.hours === 0 && remaining.minutes === 0 && remaining.seconds === 0) {
+        setTarget(nextFridayEnd());
+      }
+    }, 1000);
     return () => clearInterval(id);
   }, [target]);
 

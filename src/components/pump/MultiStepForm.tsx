@@ -14,7 +14,7 @@ function genSessionId() {
 
 async function trackLead(sessionId: string, formData: FormData, lastStep: number, isCompleted: boolean) {
   try {
-    await supabase.from("form_leads").upsert(
+    const { error } = await supabase.from("form_leads").upsert(
       {
         session_id: sessionId,
         form_data: formData,
@@ -24,8 +24,9 @@ async function trackLead(sessionId: string, formData: FormData, lastStep: number
       },
       { onConflict: "session_id" },
     );
+    if (error) console.error("[trackLead] supabase error", error);
   } catch (err) {
-    console.warn("[trackLead] failed", err);
+    console.error("[trackLead] failed", err);
   }
 }
 

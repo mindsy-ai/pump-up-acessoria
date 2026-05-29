@@ -66,7 +66,7 @@ export function Hero({ onStart }: { onStart: () => void }) {
           <span className="mr-1.5 text-[#FF4500]">●</span>
           Restam apenas <span className="text-[#FF4500]">3 vagas</span> — seleção encerra sexta-feira
         </div>
-        <div className="text-[11px] font-semibold leading-tight sm:text-[12px]">
+        <div className="mt-0.5 text-[14px] font-bold leading-tight sm:text-[16px] lg:text-[22px]">
           <Countdown />
         </div>
       </div>
@@ -79,7 +79,7 @@ export function Hero({ onStart }: { onStart: () => void }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mx-auto flex max-w-xl flex-col items-center px-5 pb-16 pt-8 text-center"
+          className="mx-auto flex max-w-xl flex-col items-center px-5 pb-16 pt-8 text-center lg:max-w-5xl"
         >
           {/* Stories ring */}
           <button
@@ -135,7 +135,7 @@ export function Hero({ onStart }: { onStart: () => void }) {
             <h3 className="mb-4 text-center text-[13px] font-bold uppercase tracking-[1.5px] text-[#9B6FFF]">
               Esta assessoria é para você se:
             </h3>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {QUALIFIERS.map((q) => (
                 <div
                   key={q}
@@ -155,9 +155,9 @@ export function Hero({ onStart }: { onStart: () => void }) {
             <h3 className="mb-4 text-center text-[13px] font-bold uppercase tracking-[1.5px] text-[#9B6FFF]">
               O que você vai receber
             </h3>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-3 lg:gap-6">
               {DELIVERABLES.map((b) => (
-                <div key={b.title} className="rounded-2xl bg-black/30 p-5">
+                <div key={b.title} className="rounded-2xl bg-black/30 p-5 lg:p-7">
                   <h4 className="mb-3 text-[15px] font-bold text-white">{b.title}</h4>
                   <ul className="space-y-2.5">
                     {b.items.map((it) => (
@@ -177,16 +177,16 @@ export function Hero({ onStart }: { onStart: () => void }) {
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <p className="text-[15px] italic leading-[1.55] text-white">
-                  "Em 90 dias, estruturamos o processo de prospecção do zero e triplicamos o volume de reuniões qualificadas por semana."
+                  "Em 6 meses estruturamos a operação de uma cliente que iniciou conosco do absoluto zero, e hoje fatura 250k anualmente. 10x mais que seus concorrentes de mercado."
                 </p>
                 <p className="mt-3 text-[13px] text-white/70">
-                  — Diretor comercial, empresa de serviços de TI B2B
+                  — Erika Facilitoy, Goiânia
                 </p>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { n: "+3x", l: "reuniões qualificadas" },
-                  { n: "90", l: "dias de implantação" },
+                  { n: "+10x", l: "em aumento de faturamento" },
+                  { n: "90", l: "dias de acompanhamento estratégico" },
                   { n: "CRM", l: "+ time treinado" },
                 ].map((s) => (
                   <div key={s.l} className="rounded-xl bg-[#1A1A1A] p-3 text-center">
