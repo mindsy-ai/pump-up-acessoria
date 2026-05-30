@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import pumpLogo from "@/assets/pump-logo.png";
-import { StoriesPlayer } from "./StoriesPlayer";
 import { Countdown } from "./Countdown";
 
 const QUALIFIERS = [
@@ -46,7 +45,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "O que acontece depois da candidatura?",
-    a: "Nossa equipe analisa sua aplicação em até 48h. Se você for selecionado, entramos em contato pelo WhatsApp para alinhar o início.",
+    a: "Nossa equipe analisa sua aplicação em até 72h. Se você for selecionado, entramos em contato pelo WhatsApp para alinhar o início.",
   },
   {
     q: "Tem algum compromisso depois?",
@@ -55,7 +54,6 @@ const FAQ: { q: string; a: string }[] = [
 ];
 
 export function Hero({ onStart }: { onStart: () => void }) {
-  const [openStories, setOpenStories] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
@@ -81,17 +79,15 @@ export function Hero({ onStart }: { onStart: () => void }) {
           transition={{ duration: 0.5 }}
           className="mx-auto flex max-w-xl flex-col items-center px-5 pb-16 pt-8 text-center lg:max-w-5xl"
         >
-          {/* Stories ring */}
-          <button
-            onClick={() => setOpenStories(true)}
-            aria-label="Ver stories da Pump Up"
-            className="h-[140px] w-[140px] animate-ring-pulse rounded-full p-[4px] transition active:scale-95"
+          {/* Logo ring */}
+          <div
+            className="h-[140px] w-[140px] animate-ring-pulse rounded-full p-[4px]"
             style={{ background: "conic-gradient(from 0deg, #FF4500, #CC0080, #6B1BFF, #FF4500)" }}
           >
             <div className="flex h-full w-full items-center justify-center rounded-full bg-black">
               <img src={pumpLogo} alt="Pump Up Marketing" className="h-[65%] w-[65%] object-contain" />
             </div>
-          </button>
+          </div>
 
           <p className="mt-2.5 text-[13px] text-white/70">
             Criado por <span className="text-[#9B6FFF]">@pumpup_mkt</span>
@@ -255,7 +251,6 @@ export function Hero({ onStart }: { onStart: () => void }) {
         </motion.div>
       </section>
 
-      <StoriesPlayer isOpen={openStories} onClose={() => setOpenStories(false)} />
     </>
   );
 }
