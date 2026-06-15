@@ -43,7 +43,30 @@ type Lead = {
 };
 
 type Filter = "all" | "completed" | "incomplete";
+type OriginFilter = "all" | "padrao" | "diagnostico";
 type Tab = "dashboard" | "leads";
+
+function getOrigin(lead: Lead): { label: string; variant: OriginFilter } {
+  const v = lead.form_data?.variant;
+  if (v === "diagnostico_v2") return { label: "/diagnostico", variant: "diagnostico" };
+  return { label: "Padrão", variant: "padrao" };
+}
+
+function OriginBadge({ lead }: { lead: Lead }) {
+  const origin = getOrigin(lead);
+  if (origin.variant === "diagnostico") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-semibold text-violet-300">
+        📅 Auto agendamento
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-2 py-0.5 text-xs font-semibold text-blue-300">
+      🎯 Seletivo
+    </span>
+  );
+}
 
 const COLORS = ["#FF4500", "#6B1BFF", "#CC0080", "#FF8C00", "#00C49F", "#FFBB28"];
 
@@ -132,6 +155,13 @@ function Dashboard({ leads }: { leads: Lead[] }) {
   const completed = leads.filter((l) => l.is_completed).length;
   const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
+  const padrao = leads.filter((l) => getOrigin(l).variant === "padrao");
+  const diagnostico = leads.filter((l) => getOrigin(l).variant === "diagnostico");
+  const byOrigin = [
+    { name: "Seletivo", total: padrao.length },
+    { name: "Auto agendamento", total: diagnostico.length },
+  ];
+
   const funnelData = [
     { name: "Parou na etapa 1", total: leads.filter((l) => l.last_step_completed === 1 && !l.is_completed).length },
     { name: "Parou na etapa 2", total: leads.filter((l) => l.last_step_completed === 2 && !l.is_completed).length },
@@ -154,6 +184,43 @@ function Dashboard({ leads }: { leads: Lead[] }) {
         <StatCard label="Incompletas" value={total - completed} sub="abandonaram o formulário" />
         <StatCard label="Taxa de conclusão" value={`${rate}%`} />
       </div>
+
+      {/* Origem cards */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-blue-300/70">🎯 Seletivo</p>
+          <p className="mt-2 text-3xl font-black text-white">{padrao.length}</p>
+          <p className="mt-1 text-xs text-white/40">
+            {padrao.filter((l) => l.is_completed).length} concluídos
+          </p>
+        </div>
+        <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-violet-300/70">📅 Auto agendamento</p>
+          <p className="mt-2 text-3xl font-black text-white">{diagnostico.length}</p>
+          <p className="mt-1 text-xs text-white/40">
+            {diagnostico.filter((l) => l.is_completed).length} concluídos
+          </p>
+        </div>
+      </div>
+
+      {/* Candidaturas por página */}
+      <ChartCard title="Candidaturas por página de origem">
+        <ResponsiveContainer width="100%" height={160}>
+          <BarChart data={byOrigin}>
+            <XAxis dataKey="name" tick={{ fill: "#ffffff80", fontSize: 13 }} />
+            <YAxis tick={{ fill: "#ffffff60", fontSize: 11 }} allowDecimals={false} />
+            <Tooltip
+              contentStyle={{ background: "#1A1A1A", border: "1px solid #ffffff20", borderRadius: 8 }}
+              labelStyle={{ color: "#fff" }}
+              itemStyle={{ color: "#a78bfa" }}
+            />
+            <Bar dataKey="total" radius={[4, 4, 0, 0]} name="Candidaturas">
+              <Cell fill="#3b82f6" />
+              <Cell fill="#8b5cf6" />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
 
       {/* Candidaturas por dia */}
       <ChartCard title="Candidaturas por dia">
@@ -266,6 +333,7 @@ function AdminLeadsPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [leads, setLeads] = useState<Lead[] | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [originFilter, setOriginFilter] = useState<OriginFilter>("all");
   const [detail, setDetail] = useState<Lead | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("dashboard");
@@ -295,10 +363,12 @@ function AdminLeadsPage() {
 
   const filtered = useMemo(() => {
     if (!leads) return [];
-    if (filter === "completed") return leads.filter((l) => l.is_completed);
-    if (filter === "incomplete") return leads.filter((l) => !l.is_completed);
-    return leads;
-  }, [leads, filter]);
+    let rows = leads;
+    if (filter === "completed") rows = rows.filter((l) => l.is_completed);
+    else if (filter === "incomplete") rows = rows.filter((l) => !l.is_completed);
+    if (originFilter !== "all") rows = rows.filter((l) => getOrigin(l).variant === originFilter);
+    return rows;
+  }, [leads, filter, originFilter]);
 
   const counts = useMemo(() => {
     const total = leads?.length ?? 0;
@@ -384,18 +454,37 @@ function AdminLeadsPage() {
         ) : (
           <>
             {/* Filter tabs */}
-            <div className="mt-4 inline-flex rounded-lg border border-white/10 bg-[#141414] p-1 text-sm">
-              {(["all", "completed", "incomplete"] as Filter[]).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`rounded-md px-3 py-1.5 font-medium transition ${
-                    filter === f ? "bg-white/10 text-white" : "text-white/70 hover:text-white"
-                  }`}
-                >
-                  {f === "all" ? "Todos" : f === "completed" ? "Completos" : "Incompletos"}
-                </button>
-              ))}
+            <div className="mt-4 flex flex-wrap gap-3">
+              <div className="inline-flex rounded-lg border border-white/10 bg-[#141414] p-1 text-sm">
+                {(["all", "completed", "incomplete"] as Filter[]).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`rounded-md px-3 py-1.5 font-medium transition ${
+                      filter === f ? "bg-white/10 text-white" : "text-white/70 hover:text-white"
+                    }`}
+                  >
+                    {f === "all" ? "Todos" : f === "completed" ? "Completos" : "Incompletos"}
+                  </button>
+                ))}
+              </div>
+              <div className="inline-flex rounded-lg border border-white/10 bg-[#141414] p-1 text-sm">
+                {([
+                  { v: "all" as OriginFilter, label: "Todas as origens" },
+                  { v: "padrao" as OriginFilter, label: "🎯 Seletivo" },
+                  { v: "diagnostico" as OriginFilter, label: "📅 Auto agendamento" },
+                ]).map(({ v, label }) => (
+                  <button
+                    key={v}
+                    onClick={() => setOriginFilter(v)}
+                    className={`rounded-md px-3 py-1.5 font-medium transition ${
+                      originFilter === v ? "bg-white/10 text-white" : "text-white/70 hover:text-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-[#141414]">
@@ -407,6 +496,7 @@ function AdminLeadsPage() {
                     <TableRow>
                       <TableHead className="text-white/70">Início</TableHead>
                       <TableHead className="text-white/70">Atualizado</TableHead>
+                      <TableHead className="text-white/70">Origem</TableHead>
                       <TableHead className="text-white/70">Status</TableHead>
                       <TableHead className="text-white/70">Nome</TableHead>
                       <TableHead className="text-white/70">Empresa</TableHead>
@@ -420,6 +510,7 @@ function AdminLeadsPage() {
                       <TableRow key={l.id} className="border-white/5 hover:bg-white/5">
                         <TableCell className="text-xs">{formatDate(l.created_at)}</TableCell>
                         <TableCell className="text-xs">{formatDate(l.updated_at)}</TableCell>
+                        <TableCell><OriginBadge lead={l} /></TableCell>
                         <TableCell>
                           {l.is_completed ? (
                             <span className="inline-flex rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400">
@@ -460,14 +551,18 @@ function AdminLeadsPage() {
           </DialogHeader>
           {detail && (
             <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-2">
+                <OriginBadge lead={detail} />
+                {detail.is_completed ? (
+                  <span className="inline-flex rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400">Completo</span>
+                ) : (
+                  <span className="inline-flex rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-400">Parou na etapa {detail.last_step_completed}</span>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-3 text-xs text-white/70">
                 <div>Início: {formatDate(detail.created_at)}</div>
                 <div>Atualizado: {formatDate(detail.updated_at)}</div>
                 <div>Session: {detail.session_id}</div>
-                <div>
-                  Status:{" "}
-                  {detail.is_completed ? "Completo" : `Parou na etapa ${detail.last_step_completed}`}
-                </div>
               </div>
               <pre className="overflow-auto rounded-lg bg-[#0D0D0D] p-4 text-xs">
                 {JSON.stringify(detail.form_data, null, 2)}

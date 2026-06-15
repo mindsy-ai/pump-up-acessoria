@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { ProgressHeader } from "./ProgressHeader";
-import { Field, RadioGroup } from "./FormField";
+import { ProgressHeader } from "@/components/pump/ProgressHeader";
+import { Field, RadioGroup } from "@/components/pump/FormField";
 import { trackLeadFn } from "@/lib/track-lead";
+
+export const CALENDAR_BOOKING_URL =
+  "https://calendar.google.com/calendar/appointments/schedules/AcZssZ1d-H_dhM5xg65jQpnsyKoBckj8nOnYGKrHjA25QT1__mLgnobLFvvDZiubq6oGobIhSiYWysyo?gv=true";
 
 type FormData = Record<string, any>;
 
@@ -17,7 +20,7 @@ async function trackLead(sessionId: string, formData: FormData, lastStep: number
     await trackLeadFn({
       data: {
         sessionId,
-        formData: { ...formData, variant: formData.variant ?? "padrao" },
+        formData: { ...formData, variant: "diagnostico_v2" },
         lastStep,
         isCompleted,
       },
@@ -26,7 +29,6 @@ async function trackLead(sessionId: string, formData: FormData, lastStep: number
     console.error("[trackLead] failed", err);
   }
 }
-
 
 const MOTIVATIONAL: Record<number, string> = {
   1: "Vamos começar! 🚀",
@@ -46,7 +48,7 @@ const stepFields: Record<number, string[]> = {
   3: ["gargalo", "usa_crm", "geracao_clientes"],
 };
 
-export function MultiStepForm({ onExit: _onExit }: { onExit?: () => void }) {
+export function MultiStepFormV2({ onExit: _onExit }: { onExit?: () => void }) {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<FormData>({});
@@ -86,7 +88,7 @@ export function MultiStepForm({ onExit: _onExit }: { onExit?: () => void }) {
           await fetch("https://mindsy-n8n.nzsrfq.easypanel.host/webhook/recebe_dados_formulario", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...data, variant: "padrao", submitted_at: new Date().toISOString() }),
+            body: JSON.stringify({ ...data, variant: "diagnostico_v2", submitted_at: new Date().toISOString() }),
           });
         } catch (err) {
           console.error("Webhook error:", err);
@@ -109,7 +111,6 @@ export function MultiStepForm({ onExit: _onExit }: { onExit?: () => void }) {
     setStep((s) => Math.max(1, s - 1));
   };
 
-  // Confetti when reaching confirmation
   useEffect(() => {
     if (step !== 4) return;
     const fire = (delay: number, opts: confetti.Options) =>
@@ -143,7 +144,7 @@ export function MultiStepForm({ onExit: _onExit }: { onExit?: () => void }) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: direction * -60 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="rounded-2xl border border-white/10 bg-[#141414] p-6 sm:p-8"
+            className={`rounded-2xl border border-white/10 bg-[#141414] ${step === 4 ? "p-3 sm:p-6" : "p-6 sm:p-8"}`}
           >
             {step < 4 && (
               <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
@@ -155,7 +156,7 @@ export function MultiStepForm({ onExit: _onExit }: { onExit?: () => void }) {
               {step === 1 && <Step1 data={data} set={set} errors={errors} />}
               {step === 2 && <Step2 data={data} set={set} errors={errors} />}
               {step === 3 && <Step3 data={data} set={set} errors={errors} />}
-              {step === 4 && <Step4Confirmation />}
+              {step === 4 && <Step4Calendar nome={data.nome} />}
             </div>
           </motion.div>
         </AnimatePresence>
@@ -253,31 +254,143 @@ function Step3({ data, set, errors }: StepProps) {
   );
 }
 
-function Step4Confirmation() {
+function Step4Calendar({ nome }: { nome?: string }) {
+  const [booked, setBooked] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const firstName = nome ? nome.split(" ")[0] : "você";
+
+  const handleBookedClick = () => {
+    if (!confirmed) {
+      setShowError(true);
+      return;
+    }
+    setShowError(false);
+    setBooked(true);
+  };
+
   return (
-    <div className="py-6 text-center">
+    <div className="py-2 text-center">
+      {/* Success icon — compacto no mobile */}
       <motion.div
         initial={{ scale: 0, rotate: -90 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-[#FF4500]/15 shadow-[0_0_60px_rgba(255,69,0,0.45)]"
+        className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FF4500]/15 shadow-[0_0_40px_rgba(255,69,0,0.4)] sm:mb-4 sm:h-20 sm:w-20"
       >
-        <svg viewBox="0 0 24 24" fill="none" className="h-14 w-14 text-[#FF4500]">
+        <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8 text-[#FF4500] sm:h-12 sm:w-12">
           <path d="M4 12.5l5 5L20 6.5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </motion.div>
-      <h2 className="font-display text-3xl font-black text-white sm:text-4xl">
-        Candidatura enviada com sucesso
+
+      <h2 className="font-display text-xl font-black text-white sm:text-2xl">
+        Candidatura enviada, {firstName}!
       </h2>
-      <p className="mx-auto mt-5 max-w-md text-[16px] leading-[1.6] text-white">
-        Nossa equipe vai analisar sua aplicação e entrar em contato em até 48h pelo WhatsApp.
+      <p className="mx-auto mt-2 max-w-sm text-[14px] leading-[1.5] text-white/80 sm:mt-3 sm:text-[15px]">
+        Escolha o melhor horário para seu diagnóstico.
       </p>
-      <p className="mt-3 text-[13px] text-white/60">
-        Apenas empresas alinhadas ao perfil serão selecionadas.
-      </p>
-      <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#FF4500]/40 bg-[#FF4500]/10 px-5 py-2 text-sm font-bold text-white">
-        🔥 Apenas 3 vagas disponíveis
+
+      <div className="mt-3 inline-flex flex-wrap items-center justify-center gap-1.5 rounded-full border border-[#FF4500]/50 bg-[#FF4500]/10 px-3 py-1.5 text-[12px] font-bold text-white sm:mt-4 sm:gap-2 sm:px-4 sm:py-2 sm:text-[13px]">
+        🔥 Restam apenas <span className="text-[#FF4500]">3 vagas</span> para esta semana
       </div>
+
+      {/* Calendar embed area */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+        className="mt-4 sm:mt-6"
+      >
+        {!booked ? (
+          <div className="overflow-hidden rounded-2xl border border-[#6B1BFF]/40">
+            {/* Header compacto */}
+            <div className="flex items-center gap-2.5 border-b border-white/10 bg-[#6B1BFF]/10 px-4 py-2.5 sm:gap-3 sm:px-5 sm:py-3.5">
+              <span className="text-lg sm:text-xl">📅</span>
+              <div className="text-left">
+                <p className="text-[12px] font-bold text-white sm:text-[13px]">Agendar Diagnóstico Estratégico</p>
+                <p className="text-[10px] text-white/50 sm:text-[11px]">45–60 min · Google Meet · Gratuito</p>
+              </div>
+            </div>
+
+            {/* Calendar iframe — altura responsiva ao viewport */}
+            <div className="bg-white">
+              <iframe
+                src={CALENDAR_BOOKING_URL}
+                title="Agendar diagnóstico"
+                className="w-full border-0"
+                style={{ height: "min(600px, calc(100svh - 300px))", minHeight: "420px" }}
+                allow="camera; microphone"
+              />
+            </div>
+
+            {/* Confirmation checkbox + button */}
+            <div className="border-t border-white/10 bg-[#0D0D0D] px-5 py-4">
+              <label className="flex cursor-pointer items-start gap-3 text-left">
+                <input
+                  type="checkbox"
+                  checked={confirmed}
+                  onChange={(e) => {
+                    setConfirmed(e.target.checked);
+                    if (e.target.checked) setShowError(false);
+                  }}
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 accent-green-500"
+                />
+                <span className="text-[13px] leading-[1.5] text-white/70">
+                  Confirmo que selecionei um horário no calendário acima e recebi a confirmação por e-mail.
+                </span>
+              </label>
+
+              {showError && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-2 text-[12px] text-red-400"
+                >
+                  Confirme o agendamento antes de continuar.
+                </motion.p>
+              )}
+
+              <motion.button
+                whileHover={{ scale: confirmed ? 1.02 : 1 }}
+                whileTap={{ scale: confirmed ? 0.97 : 1 }}
+                type="button"
+                onClick={handleBookedClick}
+                className={`mt-4 w-full rounded-xl px-6 py-3.5 text-[15px] font-bold uppercase tracking-wide text-white transition ${
+                  confirmed
+                    ? "bg-green-600 shadow-[0_6px_24px_rgba(22,163,74,0.45)] hover:bg-green-500"
+                    : "cursor-not-allowed bg-white/10 text-white/30"
+                }`}
+              >
+                ✅ Agendamento realizado
+              </motion.button>
+            </div>
+          </div>
+        ) : (
+          /* Post-booking confirmation */
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="rounded-2xl border border-[#6B1BFF]/40 bg-[#6B1BFF]/10 p-6"
+          >
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#6B1BFF]/20 text-2xl">
+              🎉
+            </div>
+            <h3 className="text-[18px] font-bold text-white">Diagnóstico agendado!</h3>
+            <p className="mt-2 text-[14px] leading-[1.6] text-white/70">
+              Você receberá a confirmação por e-mail com o link do Google Meet.
+              Nossa equipe estará pronta para a sua sessão.
+            </p>
+          </motion.div>
+        )}
+      </motion.div>
+
+      {/* Trust signal */}
+      {!booked && (
+        <p className="mt-4 text-[12px] text-white/40">
+          Confirmação automática por e-mail + convite no Google Calendar
+        </p>
+      )}
     </div>
   );
 }

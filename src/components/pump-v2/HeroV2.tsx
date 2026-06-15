@@ -1,0 +1,282 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import pumpLogo from "@/assets/pump-logo.png";
+import { Countdown } from "@/components/pump/Countdown";
+
+const QUALIFIERS = [
+  "Sua empresa vende serviços B2B e precisa de mais clientes previsíveis",
+  "Você já tem um produto validado mas o processo comercial ainda é frágil",
+  "Quer escalar sem depender só de indicação ou esforço manual",
+  "Você possui um time comercial",
+];
+
+const DELIVERABLES: { title: string; items: string[] }[] = [
+  {
+    title: "Aquisição",
+    items: [
+      "Gestão de tráfego pago (Meta e Google Ads)",
+      "Geração de listas de leads para prospecção fria",
+    ],
+  },
+  {
+    title: "Conversão",
+    items: [
+      "Criação e otimização de Páginas de Venda de alta conversão",
+      "Estruturação e treinamento do time comercial",
+    ],
+  },
+  {
+    title: "Operação",
+    items: [
+      "Implantação de CRM automatizado",
+      "Acompanhamento de resultados semanalmente",
+    ],
+  },
+];
+
+const FAQ: { q: string; a: string }[] = [
+  {
+    q: "O diagnóstico é totalmente gratuito?",
+    a: "Sim. O diagnóstico estratégico é 100% gratuito e sem compromisso. Selecionamos 5 empresas por edição e analisamos seu processo de aquisição e vendas sem nenhum custo. A implementação das estratégias identificadas é um serviço separado, apresentado apenas para quem tiver interesse após o diagnóstico.",
+  },
+  {
+    q: "Como funciona o agendamento?",
+    a: "Ao finalizar a candidatura, você escolhe imediatamente o dia e horário do diagnóstico direto no nosso calendário. A reunião é confirmada na hora — sem espera, sem vai-e-vem de WhatsApp.",
+  },
+  {
+    q: "Quanto tempo dura o diagnóstico?",
+    a: "A sessão de diagnóstico dura entre 45 e 60 minutos. Nela, mapeamos seu processo de aquisição e saímos com um plano de ação claro para os próximos 90 dias.",
+  },
+  {
+    q: "Tem algum compromisso depois?",
+    a: "Nenhum. A assessoria é entregue sem contrato de continuidade obrigatório.",
+  },
+];
+
+export function HeroV2({ onStart }: { onStart: () => void }) {
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  return (
+    <>
+      {/* Fixed top bar */}
+      <div className="fixed left-0 right-0 top-0 z-[100] flex flex-col items-center justify-center bg-[#0D0D0D] px-3 py-1.5 text-center text-white">
+        <div className="text-[12px] font-bold leading-tight sm:text-[13px]">
+          <span className="mr-1.5 text-[#FF4500]">●</span>
+          Restam apenas <span className="text-[#FF4500]">3 vagas</span> — seleção encerra sexta-feira
+        </div>
+        <div className="mt-0.5 text-[14px] font-bold leading-tight sm:text-[16px] lg:text-[22px]">
+          <Countdown />
+        </div>
+      </div>
+
+      <section
+        className="min-h-screen w-full pt-14"
+        style={{ background: "linear-gradient(180deg, #3D0080 0%, #1A0040 100%)" }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto flex max-w-xl flex-col items-center px-5 pb-16 pt-8 text-center lg:max-w-5xl"
+        >
+          {/* Logo ring */}
+          <div
+            className="h-[140px] w-[140px] animate-ring-pulse rounded-full p-[4px]"
+            style={{ background: "conic-gradient(from 0deg, #FF4500, #CC0080, #6B1BFF, #FF4500)" }}
+          >
+            <div className="flex h-full w-full items-center justify-center rounded-full bg-black">
+              <img src={pumpLogo} alt="Pump Up Marketing" className="h-[65%] w-[65%] object-contain" />
+            </div>
+          </div>
+
+          <p className="mt-2.5 text-[13px] text-white/70">
+            Criado por <span className="text-[#9B6FFF]">@pumpup_mkt</span>
+          </p>
+
+          {/* Headline */}
+          <h1
+            className="mt-4 font-display font-black uppercase leading-[1.1] tracking-[1px] text-white"
+            style={{ fontSize: "clamp(26px, 5vw, 46px)", fontWeight: 900 }}
+          >
+            Agende seu{" "}
+            <span
+              style={{
+                backgroundImage: "linear-gradient(90deg, #FF4500 0%, #6B1BFF 100%)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+              }}
+            >
+              Diagnóstico
+            </span>{" "}
+            Estratégico Gratuito
+          </h1>
+
+          {/* Subtitle */}
+          <p className="mt-5 text-[17px] leading-[1.6] text-white">
+            Preencha a candidatura e{" "}
+            <span className="font-bold">escolha o horário na hora</span> — sem espera,
+            sem vai-e-vem. Seu diagnóstico começa a partir do agendamento.
+          </p>
+
+          {/* Scheduling badge */}
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#6B1BFF]/50 bg-[#6B1BFF]/15 px-4 py-2 text-[13px] font-semibold text-white">
+            <span>📅</span>
+            Ao finalizar, você agenda direto no Google Calendar
+          </div>
+
+          {/* Primary CTA */}
+          <button
+            onClick={onStart}
+            className="mt-6 w-full rounded-full bg-[#FF4500] px-6 py-5 text-[17px] font-bold uppercase tracking-[0.5px] text-white shadow-[0_6px_24px_rgba(255,69,0,0.5)] transition active:scale-[0.98] hover:bg-[#E03D00]"
+          >
+            Quero minha análise gratuita →
+          </button>
+
+          {/* Qualifier block */}
+          <div className="mt-10 w-full text-left">
+            <h3 className="mb-4 text-center text-[13px] font-bold uppercase tracking-[1.5px] text-[#9B6FFF]">
+              Esta assessoria é para você se:
+            </h3>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {QUALIFIERS.map((q) => (
+                <div
+                  key={q}
+                  className="rounded-2xl border border-[#FF4500]/30 bg-black/30 p-4 text-[14px] leading-[1.5] text-white"
+                >
+                  <div className="mb-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#FF4500]/15 text-[#FF4500]">
+                    ✓
+                  </div>
+                  {q}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* How it works */}
+          <div className="mt-10 w-full text-left">
+            <h3 className="mb-4 text-center text-[13px] font-bold uppercase tracking-[1.5px] text-[#9B6FFF]">
+              Como funciona
+            </h3>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                { n: "01", t: "Candidatura", d: "Preencha o formulário de qualificação em menos de 2 minutos." },
+                { n: "02", t: "Agendamento imediato", d: "Escolha o dia e horário diretamente no nosso calendário, na hora." },
+                { n: "03", t: "Diagnóstico", d: "Nossa equipe analisa e entrega um plano de ação personalizado na reunião." },
+              ].map((s) => (
+                <div key={s.n} className="rounded-2xl bg-black/30 p-5">
+                  <div className="mb-3 text-[28px] font-black leading-none text-[#FF4500]/40">{s.n}</div>
+                  <h4 className="mb-1.5 text-[15px] font-bold text-white">{s.t}</h4>
+                  <p className="text-[13px] leading-[1.55] text-white/70">{s.d}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Deliverables grouped */}
+          <div className="mt-10 w-full text-left">
+            <h3 className="mb-4 text-center text-[13px] font-bold uppercase tracking-[1.5px] text-[#9B6FFF]">
+              O que você vai receber
+            </h3>
+            <div className="grid gap-4 sm:grid-cols-3 lg:gap-6">
+              {DELIVERABLES.map((b) => (
+                <div key={b.title} className="rounded-2xl bg-black/30 p-5 lg:p-7">
+                  <h4 className="mb-3 text-[15px] font-bold text-white">{b.title}</h4>
+                  <ul className="space-y-2.5">
+                    {b.items.map((it) => (
+                      <li key={it} className="flex items-start gap-2.5 text-[14px] leading-[1.5] text-white">
+                        <span className="leading-none">✅</span>
+                        <span>{it}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Social proof */}
+          <div className="mt-10 w-full rounded-2xl border-l-4 border-[#FF4500] bg-black/30 p-5 text-left">
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <p className="text-[15px] italic leading-[1.55] text-white">
+                  "Em 6 meses estruturamos a operação de uma cliente que iniciou conosco do absoluto zero, e hoje fatura 250k anualmente. 10x mais que seus concorrentes de mercado."
+                </p>
+                <p className="mt-3 text-[13px] text-white/70">
+                  — Erika Facilitoy, Goiânia
+                </p>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { n: "+10x", l: "em aumento de faturamento" },
+                  { n: "90", l: "dias de acompanhamento estratégico" },
+                  { n: "CRM", l: "+ time treinado" },
+                ].map((s) => (
+                  <div key={s.l} className="rounded-xl bg-[#1A1A1A] p-3 text-center">
+                    <div className="text-[18px] font-black leading-tight text-[#FF4500]">{s.n}</div>
+                    <div className="mt-1 text-[11px] leading-tight text-white/60">{s.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* FAQ */}
+          <div className="mt-10 w-full text-left">
+            <h3 className="mb-4 text-center text-[13px] font-bold uppercase tracking-[1.5px] text-[#9B6FFF]">
+              Dúvidas frequentes
+            </h3>
+            <div className="space-y-2">
+              {FAQ.map((item, i) => {
+                const open = openFaq === i;
+                return (
+                  <div key={item.q} className="overflow-hidden rounded-2xl border border-white/10 bg-black/30">
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaq(open ? null : i)}
+                      className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left text-[15px] font-semibold text-white"
+                    >
+                      <span>{item.q}</span>
+                      <span
+                        className={`text-[#FF4500] transition-transform ${open ? "rotate-180" : ""}`}
+                        aria-hidden
+                      >
+                        ▾
+                      </span>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {open && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="overflow-hidden"
+                        >
+                          <p className="px-4 pb-4 text-[14px] leading-[1.6] text-white/80">{item.a}</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Second CTA */}
+          <div className="mt-10 w-full">
+            <p className="mb-3 text-[15px] text-white">
+              Pronto para estruturar seu processo de aquisição B2B?
+            </p>
+            <button
+              onClick={onStart}
+              className="w-full rounded-full bg-[#FF4500] px-6 py-5 text-[17px] font-bold uppercase tracking-[0.5px] text-white shadow-[0_6px_24px_rgba(255,69,0,0.5)] transition active:scale-[0.98] hover:bg-[#E03D00]"
+            >
+              Quero minha análise gratuita →
+            </button>
+          </div>
+        </motion.div>
+      </section>
+    </>
+  );
+}
